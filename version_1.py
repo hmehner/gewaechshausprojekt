@@ -20,7 +20,7 @@ while True:
         # Anzeige der Temperatur 
         display.fill(0)
         display.print ("%-3.1fC" % temperature_C.temperature)
-        print ("%-3.1f C" % temperature_C.temperature)
+        print ("%-3.1fC" % temperature_C.temperature)
         time.sleep (10.0)
 
     except RuntimeError as error:

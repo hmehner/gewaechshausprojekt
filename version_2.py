@@ -1,6 +1,6 @@
 import time
 import board
-import adafruit_dht
+import dht11
 import busio
 from adafruit_ht16k33 import segments
 
@@ -10,27 +10,28 @@ display = segments.Seg7x4(i2c)
 display.fill(0)
 
 # Initialisierung des DHT11-Sensors am Pin D4
-sensor = adafruit_dht.DHT11(board.D4)
+sensor = dht11.DHT11(pin = 4)
 
 # Endlosschleife zur kontinuierlichen Messung und Anzeige
 while True:
     try:
-        temperature_C = sensor.temperature
-        humidity = sensor.humidity
+        result = sensor.read()
+        temperature_C = result.temperature
+        humidity = result.humidity
 
         # Anzeige der Temperatur 
         display.fill(0)
-        display.print ("{:2.1f}".format(temperature_C))
+        display.print ("%-3.1fC" % temperature_C)
         #Das ist nur fuer die Ausgabe im Terminal kann man weglassen
-        print ("Temparatur: {:.1f}".format(temperature_C))
-        time.sleep (3.0)
+        print ("%-3.1fC" % temperature_C)
+        time.sleep (5.0)
 
         # Anzeige der Luftfeuchtigkeit
         display.fill(0)
-        display.print ("{:3.0f}".format(humidity))
+        display.print ("%-3.1f%%" % humidity)
         #Das ist nur fuer die Ausgabe im Terminal kann man weglassen
-        print ("Luchtfeuchte: {}%".format(humidity))
-        time.sleep (3.0)
+        print ("%-3.1f%%" % humidity)
+        time.sleep (5.0)
 
     except RuntimeError as error:
         print (error.args[0])
