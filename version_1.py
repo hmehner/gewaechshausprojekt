@@ -16,7 +16,6 @@ sensor = adafruit_dht.DHT11(board.D4)
 while True:
     try:
         temperature_C = sensor.temperature
-        humidity = sensor.humidity
 
         # Anzeige der Temperatur 
         display.fill(0)
