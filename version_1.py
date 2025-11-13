@@ -21,11 +21,11 @@ while True:
         display.fill(0)
         display.print ("%-3.1fC" % temperature_C.temperature)
         print ("%-3.1fC" % temperature_C.temperature)
-        time.sleep (10.0)
+        time.sleep (20)
 
     except RuntimeError as error:
         print (error.args[0])
-        time.sleep (5.0)
+        time.sleep (2)
         continue
 
     except Exception as error:

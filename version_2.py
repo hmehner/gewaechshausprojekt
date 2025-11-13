@@ -24,14 +24,14 @@ while True:
         display.print ("%-3.1fC" % temperature_C)
         #Das ist nur fuer die Ausgabe im Terminal kann man weglassen
         print ("%-3.1fC" % temperature_C)
-        time.sleep (5.0)
+        time.sleep (10)
 
         # Anzeige der Luftfeuchtigkeit
         display.fill(0)
         display.print ("%-3.1f%%" % humidity)
         #Das ist nur fuer die Ausgabe im Terminal kann man weglassen
         print ("%-3.1f%%" % humidity)
-        time.sleep (5.0)
+        time.sleep (10)
 
     except RuntimeError as error:
         print (error.args[0])
