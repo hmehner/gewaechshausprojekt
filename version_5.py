@@ -1,11 +1,15 @@
 import time
 import board
+import os
 import dht11
 import busio
 import smbus
 import adafruit_character_lcd.character_lcd_i2c as character_lcd
 from adafruit_ht16k33 import segments
 from pygments import highlight
+from luma.led_matrix.device import max7219
+from luma.core.interface.serial import spi, noop
+from luma.core.render import canvas
 
 # Initialisierung des DHT11-Sensors am Pin D4
 sensor = dht11.DHT11(pin = 4)
@@ -22,13 +26,20 @@ lcd = character_lcd.Character_LCD_I2C(i2c, lcd_columns, lcd_rows, 0x21)
 lcd.backlight = True
 
 lcd.clear()
-lcd.cursor = True
+lcd.cursor = False
 lcd.message = "Messung wird \ndurchgefuehrt..."
 
 # I2C-Bus auswählen und Adresse des BH1750-Sensors
 bus = smbus.SMBus(1)
 DEVICE = 0x5c
 ONE_TIME_HIGH_RES_MODE_1 = 0x20  # einmalige Messung, hohe Auflösung
+
+# Initzialisierung der 8x8 LED Matrix
+serial = spi(port=0, device=1, gpio=noop())
+device = max7219(serial, cascaded=1, block_orientation=90)
+
+low = os.getenv('LIGHT_MINIMUM', 35000)
+
 
 def readLight():
     data = bus.read_i2c_block_data(DEVICE, ONE_TIME_HIGH_RES_MODE_1)
@@ -41,11 +52,39 @@ def evaluate_light(lux):
     high = 60000
 
     if lux < low:
-        return "Zu dunkel"
+        return 1
     elif lux > high:
-        return "Zu hell"
+        return 2
     else:
-        return "Perfekt"
+        return 0
+    
+def renderMatrix(recommendation, lux):
+    with canvas(device) as draw:
+        if recommendation == 0:
+            print(f"Licht: {lux:.1f} Lux Perfekt")
+            for x in range(2,6):
+                for y in range(2,6):
+                    draw.point((x, y), fill="white")
+        elif recommendation == 1:
+            print(f"Licht: {lux:.1f} Lux Zu dunkel")
+            start = 3
+            end = 4
+            for y in range(2,6):
+                for x in range(start, end+1):
+                    draw.point((x,y), fill="white")
+                start-=1
+                end+=1
+        elif recommendation == 2:
+            print(f"Licht: {lux:.1f} Lux Zu hell")
+            start = 0
+            end = 7
+            for y in range(2,6):
+                for x in range(start, end+1):
+                    draw.point((x,y), fill="white")
+                start+=1
+                end-=1
+                    
+            
 
 # Endlosschleife zur kontinuierlichen Messung und Anzeige
 def main ():
@@ -59,7 +98,8 @@ def main ():
                 print (humidity)
                 lux = readLight()
                 status = evaluate_light(lux)
-                print(f"Licht: {lux:.1f} Lux → {status}")
+                
+                renderMatrix(status, lux)
 
                 # Anzeige der Temp. und Luftfeuchte auf LCD
                 lcd.clear()
