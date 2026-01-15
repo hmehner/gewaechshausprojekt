@@ -38,8 +38,14 @@ ONE_TIME_HIGH_RES_MODE_1 = 0x20  # einmalige Messung, hohe Auflösung
 serial = spi(port=0, device=1, gpio=noop())
 device = max7219(serial, cascaded=1, block_orientation=90)
 
-low = os.getenv('LIGHT_MINIMUM', 35000)
+low = os.getenv('LIGHT_LOW', 35000)
+high = os.getenv('LIGHT_HIGH', 60000)
 
+try:
+    low = float(low)
+    high = float(high)
+except:
+    print("Hat Umgebungsvariable für Lichtwerte erkannt, konnte aber nicht zu float umwandeln!")
 
 def readLight():
     data = bus.read_i2c_block_data(DEVICE, ONE_TIME_HIGH_RES_MODE_1)
@@ -48,9 +54,6 @@ def readLight():
 
 # Bewertung für blühenden Nutzhanf (Pharma/Tee)
 def evaluate_light(lux):
-    low = 35000
-    high = 60000
-
     if lux < low:
         return 1
     elif lux > high:
