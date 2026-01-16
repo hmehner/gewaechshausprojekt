@@ -65,7 +65,7 @@ def logValuesToCSV(temperature, humidity, lux):
         })
 
 # Funktion zum Auslesen des DHT11-Temperatur- und Luftfeuchtigkeitssensors
-def readLight():
+def readTempAndHumidity():
     temperature = 0
     humidity = 0
 
@@ -133,7 +133,7 @@ def renderMatrix(recommendation, lux):
 def main ():
         while True:
             try:
-                temperature_c, humidity = readLight()
+                temperature_c, humidity = readTempAndHumiditys()
                 lux = readLight()
                 status = evaluate_light(lux)
 
