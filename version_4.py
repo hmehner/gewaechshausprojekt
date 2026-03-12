@@ -12,7 +12,6 @@ from luma.core.interface.serial import spi, noop
 from luma.core.render import canvas
 
 from functions.sensors import *
-from functions.logging import *
 
 
 
@@ -45,7 +44,6 @@ matrix_device = max7219(serial, cascaded=1, block_orientation=90)
 
 low = os.getenv('LIGHT_LOW', 35000)
 high = os.getenv('LIGHT_HIGH', 60000)
-csv_file = os.getenv('CSV_LOG_FILE', 'sensor_log.csv')
 
 try:
     low = float(low)
@@ -70,13 +68,6 @@ def main ():
             lux, 
             low, 
             high
-        )
-
-        logValuesToCSV(
-            temperature_c, 
-            humidity, 
-            lux, 
-            csv_file
         )
         
         renderMatrix(
