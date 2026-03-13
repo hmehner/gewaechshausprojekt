@@ -42,8 +42,8 @@ ONE_TIME_HIGH_RES_MODE_1 = 0x20  # einmalige Messung, hohe Auflösung
 serial = spi(port=0, device=1, gpio=noop())
 matrix_device = max7219(serial, cascaded=1, block_orientation=90)
 
-low = os.getenv('LIGHT_LOW', 35000)
-high = os.getenv('LIGHT_HIGH', 60000)
+low = os.getenv('LIGHT_LOW', 40000)
+high = os.getenv('LIGHT_HIGH', 55000)
 
 try:
     low = float(low)
