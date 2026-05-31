@@ -53,7 +53,12 @@ def evaluate_light(lux, low, high):
         return 2
     else:
         return 0
-
+        
+def updateLighting(status, time, sunrise, sundown):
+    if lux < low:
+        GPIO.output(relay_pin, GPIO.LOW)
+    elif lux > high:
+        GPIO.output(relay_pin, GPIO.HIGH)
 
 
 # Funktion zur Anzeige auf der 8x8 LED-Matrix
