@@ -92,6 +92,7 @@ def init():
 # Endlosschleife zur kontinuierlichen Messung und Anzeige
 def main ():
     try:
+        # Hohlt bei jedem Durchlauf neu Datum und Sonnendaten
         current_time = datetime.now()
         today = datetime.now().date()
         today_sr = sun.get_local_sunrise_time(today).replace(tzinfo=None)
@@ -99,27 +100,31 @@ def main ():
         print(f"Sonnenaufgang: {today_sr.strftime('%H:%M')}")
         print(f"Sonnenuntergang: {today_ss.strftime('%H:%M')}")
 
+        # Liest die Temperatur und Luftfeuchte aus
         temperature_c, humidity = readTempAndHumidity(dht11_sensor)
 
+        # Lichtsensor auslesen
         lux = readLight(
             bh1750_bus, 
             DEVICE, 
             ONE_TIME_HIGH_RES_MODE_1
         )
 
+        # Bewertung der Lichtverhältnisse
         status = evaluate_light(
             lux, 
             low, 
             high
         )
 
-        
+        # Beleuchtungsstatus anzeigen
         renderMatrix(
             status, 
             lux, 
             matrix_device
         )
 
+        # Beleuchtungssystem aktualisieren
         lighting = updateLighting(
             status,
             current_time,
@@ -127,6 +132,7 @@ def main ():
             today_ss
         )
         
+        # Logging für CSV
         logValuesToCSV(
             temperature_c, 
             humidity, 
@@ -166,7 +172,7 @@ def main ():
         GPIO.cleanup()
         raise error
 
-# 
+# Programmablauf
 if __name__ == "__main__":
     init()
     while True:
