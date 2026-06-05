@@ -1,0 +1,4 @@
+Timestamp,Temperature_C,Humidity_Percent,Light_Lux,Light
+2026-06-04 23:25:30,26.1C,45.0%,135.0,False
+2026-06-04 23:25:52,26.7C,45.0%,117.5,False
+2026-06-04 23:27:36,26.8C,44.0%,159.16666666666669,False
