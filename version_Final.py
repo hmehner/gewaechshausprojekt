@@ -38,33 +38,6 @@ def init():
     global relay_pin
     global sun
 
-    # Initialisierung des DHT11-Sensors am Pin D4
-    dht11_sensor = dht11.DHT11(pin = 4)
-
-    # Initialisierung des 7-Segment-Displays, des DHT11-Sensors und des LCD Display
-    i2c = busio.I2C(board.SCL, board.SDA)
-    display = segments.Seg7x4(i2c)
-    display.fill(0)
-
-    # Definiere LCD Zeilen und Spaltenanzahl.
-    lcd_columns = 16
-    lcd_rows    = 2
-    lcd = character_lcd.Character_LCD_I2C(i2c, lcd_columns, lcd_rows, 0x21)
-    lcd.backlight = True
-
-    lcd.clear()
-    lcd.cursor = False
-    lcd.message = "Messung wird \ndurchgefuehrt..."
-
-    # I2C-Bus auswählen und Adresse des BH1750-Sensors
-    bh1750_bus = smbus.SMBus(1)
-    DEVICE = 0x5c
-    ONE_TIME_HIGH_RES_MODE_1 = 0x20  # einmalige Messung, hohe Auflösung
-
-    # Initzialisierung der 8x8 LED Matrix
-    serial = spi(port=0, device=1, gpio=noop())
-    matrix_device = max7219(serial, cascaded=1, block_orientation=90)
-
     try:
         low = os.getenv('LIGHT_LOW', 35000)
         high = os.getenv('LIGHT_HIGH', 52000)
@@ -76,14 +49,45 @@ def init():
         high = float(high)
         latitude = float(latitude)
         longitude = float(longitude)
-    except:
-        print('Konnte eine Umgebungsvariable nicht richtig einlesen.')
+    except Exception as e:
+        print(f'Konnte eine Umgebungsvariable nicht richtig einlesen: {e}')
 
-    # GPIO Initialisierung
-    GPIO.setmode(GPIO.BCM)
-    relay_pin = 21
-    GPIO.setup(relay_pin, GPIO.OUT)
-    GPIO.output(relay_pin, GPIO.HIGH) 
+    try:
+        # Initialisierung des DHT11-Sensors am Pin D4
+        dht11_sensor = dht11.DHT11(pin = 4)
+
+        # Initialisierung des 7-Segment-Displays, des DHT11-Sensors und des LCD Display
+        i2c = busio.I2C(board.SCL, board.SDA)
+        display = segments.Seg7x4(i2c)
+        display.fill(0)
+
+        # Definiere LCD Zeilen und Spaltenanzahl.
+        lcd_columns = 16
+        lcd_rows    = 2
+        lcd = character_lcd.Character_LCD_I2C(i2c, lcd_columns, lcd_rows, 0x21)
+        lcd.backlight = True
+
+        lcd.clear()
+        lcd.cursor = False
+        lcd.message = "Messung wird \ndurchgefuehrt..."
+
+        # I2C-Bus auswählen und Adresse des BH1750-Sensors
+        bh1750_bus = smbus.SMBus(1)
+        DEVICE = 0x5c
+        ONE_TIME_HIGH_RES_MODE_1 = 0x20  # einmalige Messung, hohe Auflösung
+
+        # Initzialisierung der 8x8 LED Matrix
+        serial = spi(port=0, device=1, gpio=noop())
+        matrix_device = max7219(serial, cascaded=1, block_orientation=90)
+
+        # GPIO Initialisierung
+        GPIO.setmode(GPIO.BCM)
+        relay_pin = 21
+        GPIO.setup(relay_pin, GPIO.OUT)
+        GPIO.output(relay_pin, GPIO.HIGH)
+    except Exception as e:
+        print(f'Ein Sensor konnte nicht richtig initialisiert werden: {e}')
+        exit(1)
 
     sun = Sun(latitude, longitude)
 
