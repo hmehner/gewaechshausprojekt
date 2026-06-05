@@ -36,6 +36,7 @@ def init():
     global serial
     global csv_file
     global relay_pin
+    global sun
 
     # Initialisierung des DHT11-Sensors am Pin D4
     dht11_sensor = dht11.DHT11(pin = 4)
