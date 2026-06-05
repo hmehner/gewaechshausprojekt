@@ -4,6 +4,7 @@ import time
 import dht11
 import busio
 import smbus
+import RPi.GPIO as GPIO
 import adafruit_character_lcd.character_lcd_i2c as character_lcd
 from adafruit_ht16k33 import segments
 from pygments import highlight
@@ -54,11 +55,26 @@ def evaluate_light(lux, low, high):
     else:
         return 0
         
-def updateLighting(status, time, sunrise, sundown):
-    if lux < low:
+def updateLighting(status, current_time, sunrise, sundown):
+    relay_pin = 21
+    
+    is_night = (current_time < sunrise or current_time > sundown)
+    # Zu dunkel -> Licht EIN
+    if status == 1 and not is_night:
+        print("Licht EIN")
         GPIO.output(relay_pin, GPIO.LOW)
-    elif lux > high:
+        return True
+
+    # Zu hell -> Licht AUS
+    elif status == 2 or is_night:
+        print("Licht AUS")
         GPIO.output(relay_pin, GPIO.HIGH)
+        return False
+
+    # Perfekter Bereich
+    else:
+        print("Licht OK")
+        return None
 
 
 # Funktion zur Anzeige auf der 8x8 LED-Matrix

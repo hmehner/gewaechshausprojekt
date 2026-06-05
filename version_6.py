@@ -3,7 +3,6 @@ import board
 import os
 import dht11
 import busio
-import datetime
 import smbus
 import adafruit_character_lcd.character_lcd_i2c as character_lcd
 import RPi.GPIO as GPIO
@@ -14,8 +13,10 @@ from luma.core.interface.serial import spi, noop
 from luma.core.render import canvas
 from functions.sensors import *
 from functions.logging import *
-from dateutil import tz
+from datetime import datetime, date
 from suntime import Sun, SunTimeException
+from zoneinfo import ZoneInfo
+from dateutil import tz
 
 # Initialisierung des DHT11-Sensors am Pin D4
 dht11_sensor = dht11.DHT11(pin = 4)
@@ -44,38 +45,42 @@ ONE_TIME_HIGH_RES_MODE_1 = 0x20  # einmalige Messung, hohe Auflösung
 serial = spi(port=0, device=1, gpio=noop())
 matrix_device = max7219(serial, cascaded=1, block_orientation=90)
 
-low = os.getenv('LIGHT_LOW', 35000)
-high = os.getenv('LIGHT_HIGH', 60000)
-latitude = float(os.getenv('LATITUDE', 51.0504))
-longitude = float(os.getenv('longitude', 13.7373))
-csv_file = os.getenv('CSV_LOG_FILE', 'sensor_log.csv')
-
-# GPIO Initialisierung
-GPIO.setmode(GPIO.BCM)
-relay_pin = 21
-GPIO.setup(relay_pin, GPIO.OUT)
-GPIO.output(relay_pin, GPIO.LOW)
-time.sleep(2)
-GPIO.output(relay_pin, GPIO.HIGH) 
-
-# Sonne-Zeiten Initialisierung
-sun = Sun(latitude, longitude)
-today = datetime.datetime.now()
-timezone = datetime.datetime.now().astimezone().tzname()
-
-today_sr = sun.get_sunrise_time(today, tz.gettz(timezone))
-today_ss = sun.get_sunset_time(today, tz.gettz(timezone))
-
-print('Today the sun raised at {} and get down at {} {}'.
-      format(today_sr.strftime('%H:%M'), today_ss.strftime('%H:%M'), timezone))
-
 try:
+    low = os.getenv('LIGHT_LOW', 35000)
+    high = os.getenv('LIGHT_HIGH', 52000)
+    latitude = os.getenv('LATITUDE', 51.0504)
+    longitude = os.getenv('LONGITUDE', 13.7373)
+    csv_file = os.getenv('CSV_LOG_FILE', 'sensor_log.csv')
+    
     low = float(low)
     high = float(high)
     latitude = float(latitude)
     longitude = float(longitude)
 except:
-    print("Umgebungsvariable nicht erkannt, oder konnten nicht zu float umwandeln!")
+    print('Konnte eine Umgebungsvariable nicht richtig einlesen.')
+
+# GPIO Initialisierung
+GPIO.setmode(GPIO.BCM)
+relay_pin = 21
+GPIO.setup(relay_pin, GPIO.OUT)
+GPIO.output(relay_pin, GPIO.HIGH) 
+
+try:
+    sun = Sun(latitude, longitude)
+    
+    timezone = ZoneInfo("Europe/Berlin")
+    today = datetime.now().date()
+
+    today_sr = sun.get_local_sunrise_time(today).replace(tzinfo=None)
+    today_ss = sun.get_local_sunset_time(today).replace(tzinfo=None)
+
+    print(f"Sonnenaufgang: {today_sr.strftime('%H:%M')}")
+    print(f"Sonnenuntergang: {today_ss.strftime('%H:%M')}")
+
+except SunTimeException as e:
+    print(f"Fehler beim Berechnen der Sonnenzeiten: {e}")
+except Exception as e:
+    print(f"Sonnenzeiten konnten nicht ermittelt werden: {e}")
 
 
 
@@ -96,12 +101,6 @@ def main ():
             high
         )
 
-        logValuesToCSV(
-            temperature_c, 
-            humidity, 
-            lux, 
-            csv_file
-        )
         
         renderMatrix(
             status, 
@@ -109,8 +108,24 @@ def main ():
             matrix_device
         )
         
-        updateLighting(
+        current_time = datetime.now()
+        today = datetime.now().date()
+        today_sr = sun.get_local_sunrise_time(today).replace(tzinfo=None)
+        today_ss = sun.get_local_sunset_time(today).replace(tzinfo=None) 
+
+        lighting = updateLighting(
             status,
+            current_time,
+            today_sr,
+            today_ss
+        )
+        
+        logValuesToCSV(
+            temperature_c, 
+            humidity, 
+            lux,
+            lighting,
+            csv_file
         )
 
         # Anzeige der Temp. und Luftfeuchte auf LCD
@@ -125,11 +140,7 @@ def main ():
         # Anzeige der Luftfeuchtigkeit
         display.fill(0)
         display.print (humidity.replace("%", "F"))
-        time.sleep(10)
-       
-        GPIO.output(relay_pin, GPIO.LOW)
-        time.sleep(2)
-        GPIO.output(relay_pin, GPIO.HIGH) 
+        time.sleep(10) 
 
     except RuntimeError as error:
         print (error.args[0])
