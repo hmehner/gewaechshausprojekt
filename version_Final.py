@@ -39,8 +39,8 @@ def init():
     global sun
 
     try:
-        low = os.getenv('LIGHT_LOW', 35000)
-        high = os.getenv('LIGHT_HIGH', 52000)
+        low = os.getenv('LIGHT_LOW', 40000)
+        high = os.getenv('LIGHT_HIGH', 50000)
         latitude = os.getenv('LATITUDE', 51.0504)
         longitude = os.getenv('LONGITUDE', 13.7373)
         csv_file = os.getenv('CSV_LOG_FILE', 'sensor_log.csv')
